@@ -1,13 +1,21 @@
 from flask import Flask, request, jsonify
 from google.cloud import vision
 import os
+import json
 
 app = Flask(__name__)
 
-# Set the environment variable for the service account key
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "ai-health-app-key.json"
+# Retrieve the service account JSON from the environment variable
+service_account_info = os.getenv('GOOGLE_CLOUD_KEY')
 
-# Initialize the Google Vision client
+# Write the service account JSON to a temporary file
+with open('temp_service_account.json', 'w') as f:
+    f.write(service_account_info)
+
+# Set the environment variable to point to the temporary JSON key file
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "temp_service_account.json"
+
+# Initialize Google Vision client
 client = vision.ImageAnnotatorClient()
 
 @app.route('/')
