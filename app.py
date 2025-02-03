@@ -5,6 +5,7 @@ from PIL import Image
 import os
 from openai import OpenAI
 
+# Flask app instance
 app = Flask(__name__)
 
 # Initialize OpenAI Client
@@ -16,30 +17,47 @@ def home():
 
 @app.route('/upload', methods=['POST'])
 def upload_photo():
+    # Check if 'photo' is in the request
     if 'photo' not in request.files:
+        print("No photo found in the request.")  # Debug line
         return jsonify({"error": "No photo uploaded"}), 400
 
     photo = request.files['photo']
-    img = Image.open(photo)
+
+    # Check if the file is empty
+    if photo.filename == '':
+        print("No selected file.")  # Debug line
+        return jsonify({"error": "No selected file"}), 400
+
+    try:
+        img = Image.open(photo)
+    except Exception as e:
+        print(f"Error opening image: {e}")  # Debug line
+        return jsonify({"error": "Invalid image file"}), 400
 
     img_array = np.array(img)
-    img_cv2 = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
 
-    # Example: Simple brightness check (can be replaced with more complex analysis)
+    try:
+        img_cv2 = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+    except Exception as e:
+        print(f"Error converting image: {e}")  # Debug line
+        return jsonify({"error": "Error processing image"}), 400
+
     brightness = np.mean(img_cv2)
+    prompt = f"The brightness level of the uploaded photo is {brightness}. Provide a health tip based on this."
 
-    # Create a prompt for OpenAI to generate health tips
-    prompt = f"The uploaded photo has an average brightness level of {brightness}. Provide a relevant health tip based on the brightness and possible health considerations."
-
-    # Call OpenAI API
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}]
-    )
-
-    health_tip = response.choices[0].message.content.strip()
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        health_tip = response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"OpenAI API error: {e}")  # Debug line
+        return jsonify({"error": "Error getting health tip from AI"}), 500
 
     return jsonify({"health_tip": health_tip}), 200
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# Ensure Flask runs on Render's port
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
