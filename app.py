@@ -1,47 +1,33 @@
-from flask import Flask, request, jsonify, render_template
-import os
+from flask import Flask, request, jsonify
 from google.cloud import vision
-import numpy as np
-from PIL import Image
-import cv2
+import os
 
 app = Flask(__name__)
 
-# Path to your Service Account JSON key
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account.json"  # Update if you kept the original name
+# Set the environment variable for the service account key
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "ai-health-app-key.json"
 
-# Initialize Google Vision API Client
+# Initialize the Google Vision client
 client = vision.ImageAnnotatorClient()
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return "Welcome to the AI Health App!"
 
-@app.route('/upload', methods=['POST'])
-def upload_photo():
-    if 'photo' not in request.files:
-        return jsonify({"error": "No photo uploaded"}), 400
+@app.route('/analyze', methods=['POST'])
+def analyze_image():
+    if 'image' not in request.files:
+        return jsonify({'error': 'No image uploaded'}), 400
 
-    photo = request.files['photo']
-    img = Image.open(photo)
+    image_file = request.files['image']
+    content = image_file.read()
 
-    # Calculate brightness
-    img_array = np.array(img)
-    img_cv2 = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
-    brightness = np.mean(img_cv2)
-
-    # Prepare image for Vision API
-    photo.seek(0)
-    content = photo.read()
+    # Use Google Vision API to analyze the image
     image = vision.Image(content=content)
-
-    # Use Vision API to detect labels
     response = client.label_detection(image=image)
     labels = [label.description for label in response.label_annotations]
 
-    health_tip = f"The brightness level of the uploaded photo is {brightness:.2f}. The image contains: {', '.join(labels)}."
-
-    return jsonify({"health_tip": health_tip})
+    return jsonify({'labels': labels})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8080)
