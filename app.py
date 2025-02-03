@@ -3,12 +3,12 @@ import cv2
 import numpy as np
 from PIL import Image
 import os
-from openai import OpenAI
+import openai
 
 app = Flask(__name__)
 
-# Initialize OpenAI Client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Initialize OpenAI API key
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 @app.route('/')
 def home():
@@ -25,20 +25,20 @@ def upload_photo():
     img_array = np.array(img)
     img_cv2 = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
 
-    # Example: Simple brightness check
+    # Simple brightness check
     brightness = np.mean(img_cv2)
 
     # Use OpenAI to generate a health tip
     prompt = f"The brightness level of the uploaded photo is {brightness}. Provide a health tip based on this."
 
-    response = client.chat.completions.create(
+    response = openai.ChatCompletion.create(
         model="gpt-4o",
         messages=[
             {"role": "user", "content": prompt}
         ]
     )
 
-    health_tip = response.choices[0].message.content.strip()
+    health_tip = response.choices[0].message['content'].strip()
 
     return jsonify({"health_tip": health_tip}), 200
 
