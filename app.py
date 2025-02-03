@@ -1,14 +1,14 @@
-import openai
 from flask import Flask, request, jsonify, render_template
 import cv2
 import numpy as np
 from PIL import Image
 import os
+from openai import OpenAI
 
 app = Flask(__name__)
 
-# Load the OpenAI API key from environment variables
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Initialize OpenAI Client
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route('/')
 def home():
@@ -31,17 +31,14 @@ def upload_photo():
     # Use OpenAI to generate a health tip
     prompt = f"The brightness level of the uploaded photo is {brightness}. Provide a health tip based on this."
 
-    # Updated API call using ChatCompletion
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",  # You can use "gpt-4" if available in your account
+    response = client.chat.completions.create(
+        model="gpt-4o",
         messages=[
-            {"role": "system", "content": "You are a helpful health advisor."},
             {"role": "user", "content": prompt}
-        ],
-        max_tokens=50
+        ]
     )
 
-    health_tip = response['choices'][0]['message']['content'].strip()
+    health_tip = response.choices[0].message.content.strip()
 
     return jsonify({"health_tip": health_tip}), 200
 
