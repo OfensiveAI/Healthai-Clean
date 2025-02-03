@@ -1,3 +1,4 @@
+openai
 gunicorn
 asttokens==3.0.0
 colorama==0.4.6
