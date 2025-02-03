@@ -1,6 +1,6 @@
+gunicorn
 openai
 numpy
 Pillow
 opencv-python
 flask
-gunicorn
