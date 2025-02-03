@@ -1,13 +1,18 @@
+import openai
 from flask import Flask, request, jsonify, render_template
 import cv2
 import numpy as np
 from PIL import Image
+import os
 
 app = Flask(__name__)
 
+# Load the OpenAI API key from environment variables
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 @app.route('/')
 def home():
-    return render_template('index.html')  # Renders the upload form
+    return render_template('index.html')
 
 @app.route('/upload', methods=['POST'])
 def upload_photo():
@@ -17,18 +22,22 @@ def upload_photo():
     photo = request.files['photo']
     img = Image.open(photo)
 
-    # Convert image to numpy array for OpenCV processing
     img_array = np.array(img)
     img_cv2 = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
 
-    # Placeholder: Basic Image Analysis (e.g., checking image brightness)
+    # Example: Simple brightness check
     brightness = np.mean(img_cv2)
 
-    # Simple health tip based on brightness (just an example!)
-    if brightness > 150:
-        health_tip = "Looks bright! Make sure to wear sunscreen if you're outside."
-    else:
-        health_tip = "Image looks dark. Consider increasing your vitamin D intake!"
+    # Use OpenAI to generate a health tip
+    prompt = f"The brightness level of the uploaded photo is {brightness}. Provide a health tip based on this."
+
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        prompt=prompt,
+        max_tokens=50
+    )
+
+    health_tip = response.choices[0].text.strip()
 
     return jsonify({"health_tip": health_tip}), 200
 
