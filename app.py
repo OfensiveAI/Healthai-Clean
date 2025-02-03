@@ -31,13 +31,17 @@ def upload_photo():
     # Use OpenAI to generate a health tip
     prompt = f"The brightness level of the uploaded photo is {brightness}. Provide a health tip based on this."
 
-    response = openai.Completion.create(
-        engine="text-davinci-003",
-        prompt=prompt,
+    # Updated API call using ChatCompletion
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",  # You can use "gpt-4" if available in your account
+        messages=[
+            {"role": "system", "content": "You are a helpful health advisor."},
+            {"role": "user", "content": prompt}
+        ],
         max_tokens=50
     )
 
-    health_tip = response.choices[0].text.strip()
+    health_tip = response['choices'][0]['message']['content'].strip()
 
     return jsonify({"health_tip": health_tip}), 200
 
