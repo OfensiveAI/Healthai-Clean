@@ -33,7 +33,7 @@ def upload_photo():
         print(f"Prompt sent to OpenAI: {prompt}")
 
         response = client.chat.completions.create(
-            model="gpt-4o-2024-08-06",  # Using specific model snapshot to avoid access issues
+            model="gpt-3.5-turbo",  # Use GPT-3.5 Turbo
             messages=[
                 {"role": "user", "content": prompt}
             ]
@@ -43,8 +43,8 @@ def upload_photo():
         return jsonify({"health_tip": health_tip}), 200
 
     except Exception as e:
-        print(f"Error: {e}")  # Detailed error logging
-        return jsonify({"error": f"Error getting health tip from AI: {str(e)}"}), 500
+        print(f"Error: {e}")  # Logs the specific error to the server logs
+        return jsonify({"error": f"Error getting health tip from AI: {e}"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
