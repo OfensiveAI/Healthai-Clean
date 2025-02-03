@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from PIL import Image
 import os
-import openai
+import openai  # Using the older import style
 
 app = Flask(__name__)
 
@@ -28,17 +28,18 @@ def upload_photo():
     # Simple brightness check
     brightness = np.mean(img_cv2)
 
-    # Use OpenAI to generate a health tip
+    # Use OpenAI to generate a health tip (older syntax compatible with openai==0.28)
     prompt = f"The brightness level of the uploaded photo is {brightness}. Provide a health tip based on this."
 
     response = openai.ChatCompletion.create(
-        model="gpt-4o",
+        model="gpt-4",
         messages=[
             {"role": "user", "content": prompt}
         ]
     )
 
-    health_tip = response.choices[0].message['content'].strip()
+    # Corrected response parsing
+    health_tip = response.choices[0]['message']['content'].strip()
 
     return jsonify({"health_tip": health_tip}), 200
 
