@@ -6,12 +6,8 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 # Write the service account JSON from the environment variable to a temporary file
-service_account_info = os.getenv("SERVICE_ACCOUNT_JSON")
-with open("temp_service_account.json", "w") as f:
-    f.write(service_account_info)
-
-# Set the Google credentials environment variable
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "temp_service_account.json"
+# New Code (Fix for Render Secret File)
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/etc/secrets/SERVICE_ACCOUNT_JSON"
 
 # Initialize the Vision API client
 client = vision.ImageAnnotatorClient()
